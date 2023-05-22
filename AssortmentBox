@@ -1,17 +1,132 @@
-rasterlinie(10 ,51);
+/***********************************************
+* Vase mode assortment boxes                   *
+***********************************************/
 
-module rasterlinie(radius, height){
+ItemsX = 2; // number of sextions in x
+ItemsY = 1; // number of sections in y
 
-diagonal = sqrt((radius^2)/2);
+height = 78; // overall height of the boxes
+
+patternx = 80; // x pattern size
+patterny = patternx; // y pattern sice, must not be sqare...
+
+gridradius = 3; // radiusof the grid overall size will be double. Well, the grid was round once, hence the name....
+
+wall=0.5;   // wall size. 0.5 leads to one line walls
+offset = 1; // if the boxes shall actually fit, a little offset between might help 
+edgeradius=3; // i hate sharp outer corners
+
+LabelWidth=40;
+LabelHeight=10;
+
+//**************************************************************************
+// There should be no need to touch anything below here
+//**************************************************************************
+$fs = 0.01;
+
+
+boxx = ItemsX*patternx;
+boxy = ItemsY*patterny;
+
+//remove the inner form of the box from the outer form - cure version of a shell command
+union(){
+    difference () {
+        boxshape( [boxx, boxy,height] , edgeradius, gridradius,0 );   
+        
+        translate([wall, wall, wall])
+        boxshape( [boxx-2*wall, boxy-2*wall,height], edgeradius-wall, gridradius+wall,wall );   
+    }
+    translate([ItemsX*patternx/2+LabelWidth/2,offset/2+wall,height])
+    rotate([-90,0,90])
     difference(){
-        translate([0,-radius/2,0])
+        cube([LabelHeight,LabelHeight,LabelWidth]);
+        hightS = sqrt(2*LabelHeight^2);
+        translate([LabelHeight,0,-1])
+        rotate([0,0,45])
+        cube([hightS,hightS,LabelWidth+2]);
+    }
+}
+
+
+    
+
+// Create a cube with rounded eges along z and grid on the bottom
+module boxshape(size,eradius, gradius,wallcomp) {
+
+  difference(){
+      if(eradius == 0){
+         cube(size);
+      } else {
+          translate([offset/2,offset/2,0])  
+          // basically: create a hull around 4 round corner posts
+          hull(){  
+              translate([eradius           , eradius, 0])           cylinder(h=size[2], r= eradius );
+              translate([size[0] - eradius-offset , eradius, 0])           cylinder(h=size[2], r= eradius );
+              translate([eradius           , size[1] - eradius-offset, 0]) cylinder(h=size[2], r= eradius );
+              translate([size[0] - eradius-offset , size[1] - eradius-offset, 0]) cylinder(h=size[2], r= eradius );
+          }
+      }
+      
+          
+    for (i = [0:ItemsX]) {       // Loop from 0 to 4 (total of 5 cubes)
+      if(i==0){
+          translate([-wallcomp,0,-wallcomp])
+          translate([(size[0]/ItemsX)*i,0,0])
+          rotate([-90,0,0])
+          rasterlinie(gradius,patternx*ItemsY);
+         // cylinder(h=patternx*ItemsY, r= gradius );
+      }
+      else { if(i==ItemsX){
+          translate([+wallcomp,0,-wallcomp])
+          translate([(size[0]/ItemsX)*i,0,0])
+          rotate([-90,0,0])
+          rasterlinie(gradius,patternx*ItemsY);
+        //  cylinder(h=patternx*ItemsY, r= gradius );
+      }else 
+      {   translate([0,0,-wallcomp])
+          translate([(size[0]/ItemsX)*i,0,0])
+          rotate([-90,0,0])
+          rasterlinie(gradius,patternx*ItemsY);
+        //  cylinder(h=patternx*ItemsY, r= gradius );
+      }}
+      
+    }
+    for (i = [0:ItemsY]) {       // Loop from 0 to 4 (total of 5 cubes)
+     if(i==0){
+        translate([0,-wallcomp,-wallcomp])   
+        translate([0,(size[1]/ItemsY)*i,0])
+        rotate([-90,0,0])rotate([0,90,0])
+        rasterlinie(gradius,patterny*ItemsX);
+      }
+      else { if(i==ItemsY){
+        translate([0,+wallcomp,-wallcomp])  
+        translate([0,(size[1]/ItemsY)*i,0])
+        rotate([-90,0,0])rotate([0,90,0])
+        rasterlinie(gradius,patterny*ItemsX);  
+      }else 
+      {
+        translate([0,0,-wallcomp])
+        translate([0,(size[1]/ItemsY)*i,0])
+        rotate([-90,0,0])rotate([0,90,0])
+        rasterlinie(gradius,patterny*ItemsX);
+      }}   
+    }   
+  }
+}
+
+module rasterlinie(radius, height, capcut = 0){
+
+diagonal = sqrt(((2*radius)^2)/2);
+    difference(){
+        translate([0,-radius,0])
         rotate([0,0,45])    
         cube([diagonal,diagonal,height]);
 
-        translate([-radius/2,0,0])     // cut lower part
-        cube([radius,radius,height]);
+  //      translate([-radius,0,0])     // cut lower part
+  //      cube([2*radius,2*radius,height]);
 
-        translate([-radius/2,-1.5*radius+1,0]) //break 1 mm top
-        cube([radius,radius,height]);
-    }
+        translate([-radius,-2*radius+capcut,0]) //break 1 mm top
+        cube([2*radius,radius,height]);
+  
+        }
 }
