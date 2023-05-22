@@ -1,0 +1,17 @@
+rasterlinie(10 ,51);
+
+module rasterlinie(radius, height){
+
+diagonal = sqrt((radius^2)/2);
+    difference(){
+        translate([0,-radius/2,0])
+        rotate([0,0,45])    
+        cube([diagonal,diagonal,height]);
+
+        translate([-radius/2,0,0])     // cut lower part
+        cube([radius,radius,height]);
+
+        translate([-radius/2,-1.5*radius+1,0]) //break 1 mm top
+        cube([radius,radius,height]);
+    }
+}
